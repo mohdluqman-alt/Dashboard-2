@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENT RO — Sales Dashboard · Feb 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #0A1628;
+    --navy2:   #0F2044;
+    --navy3:   #162B55;
+    --blue:    #2196F3;
+    --blue2:   #1565C0;
+    --gold:    #F5A623;
+    --coral:   #FF6B6B;
+    --green:   #4CAF50;
+    --white:   #FFFFFF;
+    --grey1:   #F4F7FC;
+    --grey2:   #E0E8F5;
+    --text:    #FFFFFF;
+    --muted:   rgba(255,255,255,0.55);
+    --card-bg: rgba(255,255,255,0.05);
+    --card-border: rgba(255,255,255,0.10);
+    --radius:  14px;
+    --shadow:  0 4px 24px rgba(0,0,0,0.35);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, var(--navy2) 0%, var(--navy3) 100%);
+    border-bottom: 1px solid var(--card-border);
+    padding: 18px 24px 16px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .logo-pill {
+    background: var(--blue);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+  }
+  .header-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .header-badge {
+    background: var(--gold);
+    color: var(--navy);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* ── HERO STRIP ── */
+  .hero {
+    background: linear-gradient(135deg, var(--blue2) 0%, var(--blue) 60%, #42A5F5 100%);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 24px;
+    box-shadow: var(--shadow);
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .hero-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 1.2px;
+    text-transform: uppercase; opacity: 0.75; margin-bottom: 6px;
+  }
+  .hero-number {
+    font-family: 'Sora', sans-serif;
+    font-size: 42px; font-weight: 800; line-height: 1;
+    letter-spacing: -1px;
+  }
+  .hero-sub { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+  .hero-divider { width: 1px; height: 60px; background: rgba(255,255,255,0.25); }
+  .hero-stat { text-align: center; }
+  .hero-stat .hero-number { font-size: 28px; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .kpi-card .accent-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .kpi-card .kpi-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  .kpi-card .kpi-val {
+    font-family: 'Sora', sans-serif;
+    font-size: 26px; font-weight: 800;
+  }
+  .kpi-card .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .kpi-card .kpi-icon {
+    position: absolute; bottom: 14px; right: 16px;
+    font-size: 28px; opacity: 0.15;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-hd {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px; margin-top: 8px;
+  }
+  .section-hd h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px; font-weight: 700;
+  }
+  .section-hd .line { flex: 1; height: 1px; background: var(--card-border); }
+
+  /* ── CHART CARDS ── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 22px 20px 18px;
+    box-shadow: var(--shadow);
+  }
+  .chart-card h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 16px; color: rgba(255,255,255,0.85);
+  }
+  .chart-wrap { position: relative; height: 240px; }
+
+  /* ── PROGRESS RINGS ── */
+  .rings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .ring-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 24px 16px 20px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .ring-card:hover { transform: translateY(-3px); }
+  .ring-wrap { position: relative; width: 110px; height: 110px; margin: 0 auto 14px; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 9; }
+  .ring-fg { fill: none; stroke-width: 9; stroke-linecap: round;
+    stroke-dasharray: 283; stroke-dashoffset: 283;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .ring-pct {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 800;
+  }
+  .ring-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .ring-detail { font-size: 11px; color: var(--muted); }
+
+  /* ── REGION TABLES ── */
+  .regions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .region-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .region-header {
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .region-header .r-name {
+    font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700;
+  }
+  .region-header .r-pct {
+    font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    background: rgba(0,0,0,0.3);
+  }
+  table.rep-table { width: 100%; border-collapse: collapse; }
+  table.rep-table th {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--muted);
+    padding: 8px 18px; text-align: left;
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(0,0,0,0.15);
+  }
+  table.rep-table td {
+    padding: 10px 18px; font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  table.rep-table tr:last-child td { border-bottom: none; }
+  table.rep-table td:not(:first-child) { font-variant-numeric: tabular-nums; }
+  .bar-mini {
+    height: 4px; background: rgba(255,255,255,0.08);
+    border-radius: 4px; margin-top: 5px; overflow: hidden;
+  }
+  .bar-mini-fill { height: 100%; border-radius: 4px; transition: width 1.2s ease; width: 0; }
+  .chip-zero {
+    display: inline-block; padding: 1px 7px;
+    border-radius: 10px; font-size: 10px; font-weight: 600;
+    background: rgba(255,107,107,0.18); color: #FF6B6B;
+  }
+  .chip-pos {
+    display: inline-block; padding: 1px 7px;
+    border-radius: 10px; font-size: 10px; font-weight: 600;
+    background: rgba(76,175,80,0.18); color: #4CAF50;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; font-size: 11px; color: var(--muted);
+    padding-top: 20px; border-top: 1px solid var(--card-border);
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; }
+    .hero { padding: 20px; }
+    .hero-number { font-size: 32px; }
+    .hero-divider { display: none; }
+    .page { padding: 20px 14px 48px; }
+    .hero-stat .hero-number { font-size: 22px; }
+    .kpi-card .kpi-val { font-size: 22px; }
+    .charts-grid { grid-template-columns: 1fr; }
+    .ring-wrap { width: 90px; height: 90px; }
+    .ring-pct { font-size: 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ring-fg, .bar-mini-fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="logo-pill">KENT RO</div>
+    <div class="header-title">North India Sales · Target Dashboard</div>
+  </div>
+  <div class="header-badge">📅 February 2025</div>
+</header>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <div class="hero-label">Team Achievement</div>
+      <div class="hero-number">₹2,19,281</div>
+      <div class="hero-sub">vs Team Target ₹8,60,00,000</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-label">% Achieved</div>
+      <div class="hero-number">0.25%</div>
+      <div class="hero-sub">of monthly target</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-label">Gap to Target</div>
+      <div class="hero-number">₹8.58 Cr</div>
+      <div class="hero-sub">remaining this month</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-label">Active Performers</div>
+      <div class="hero-number">5 / 24</div>
+      <div class="hero-sub">reps with non-zero achv.</div>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="accent-bar" style="background: var(--blue);"></div>
+      <div class="kpi-label">North Region</div>
+      <div class="kpi-val">₹48,000</div>
+      <div class="kpi-sub">Target: ₹1.90 Cr · 0.25% achieved</div>
+      <div class="kpi-icon">🧭</div>
+    </div>
+    <div class="kpi-card">
+      <div class="accent-bar" style="background: var(--gold);"></div>
+      <div class="kpi-label">South Region</div>
+      <div class="kpi-val">₹77,650</div>
+      <div class="kpi-sub">Target: ₹4.90 Cr · 0.16% achieved</div>
+      <div class="kpi-icon">🌴</div>
+    </div>
+    <div class="kpi-card">
+      <div class="accent-bar" style="background: var(--coral);"></div>
+      <div class="kpi-label">East Region</div>
+      <div class="kpi-val">₹0</div>
+      <div class="kpi-sub">Target: ₹50 L · No achievement</div>
+      <div class="kpi-icon">🌅</div>
+    </div>
+    <div class="kpi-card">
+      <div class="accent-bar" style="background: #9C27B0;"></div>
+      <div class="kpi-label">West Region</div>
+      <div class="kpi-val">₹93,631</div>
+      <div class="kpi-sub">Target: ₹1.30 Cr · 0.72% achieved</div>
+      <div class="kpi-icon">🌄</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="section-hd"><h2>Visual Breakdown</h2><div class="line"></div></div>
+  <div class="charts-grid">
+
+    <div class="chart-card">
+      <h3>Target vs Achievement by Region</h3>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Target Share by Region</h3>
+      <div class="chart-wrap"><canvas id="donutChart"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="grid-column: span 2; max-width: 100%;">
+      <h3>Individual Rep — Achievement vs Target (Top Performers)</h3>
+      <div class="chart-wrap" style="height: 260px;"><canvas id="repChart"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- PROGRESS RINGS -->
+  <div class="section-hd"><h2>Region Attainment</h2><div class="line"></div></div>
+  <div class="rings-grid">
+    <div class="ring-card">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100" width="110" height="110">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" id="ring-north" cx="50" cy="50" r="45" stroke="#2196F3"/>
+        </svg>
+        <div class="ring-pct" id="rpct-north">0%</div>
+      </div>
+      <div class="ring-name">North</div>
+      <div class="ring-detail">₹48K of ₹1.90 Cr</div>
+    </div>
+    <div class="ring-card">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100" width="110" height="110">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" id="ring-south" cx="50" cy="50" r="45" stroke="#F5A623"/>
+        </svg>
+        <div class="ring-pct" id="rpct-south">0%</div>
+      </div>
+      <div class="ring-name">South</div>
+      <div class="ring-detail">₹77.6K of ₹4.90 Cr</div>
+    </div>
+    <div class="ring-card">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100" width="110" height="110">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" id="ring-east" cx="50" cy="50" r="45" stroke="#FF6B6B"/>
+        </svg>
+        <div class="ring-pct" id="rpct-east">0%</div>
+      </div>
+      <div class="ring-name">East</div>
+      <div class="ring-detail">₹0 of ₹50 L</div>
+    </div>
+    <div class="ring-card">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100" width="110" height="110">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" id="ring-west" cx="50" cy="50" r="45" stroke="#9C27B0"/>
+        </svg>
+        <div class="ring-pct" id="rpct-west">0%</div>
+      </div>
+      <div class="ring-name">West</div>
+      <div class="ring-detail">₹93.6K of ₹1.30 Cr</div>
+    </div>
+    <div class="ring-card" style="border-color: rgba(33,150,243,0.3); background: rgba(33,150,243,0.07);">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100" width="110" height="110">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" id="ring-team" cx="50" cy="50" r="45" stroke="#4CAF50"/>
+        </svg>
+        <div class="ring-pct" id="rpct-team">0%</div>
+      </div>
+      <div class="ring-name" style="color: #4CAF50;">Overall Team</div>
+      <div class="ring-detail">₹2.19L of ₹8.60 Cr</div>
+    </div>
+  </div>
+
+  <!-- REGION TABLES -->
+  <div class="section-hd"><h2>Rep-Level Detail</h2><div class="line"></div></div>
+  <div class="regions-grid">
+
+    <!-- NORTH -->
+    <div class="region-card">
+      <div class="region-header" style="background: rgba(33,150,243,0.15); border-bottom: 1px solid rgba(33,150,243,0.2);">
+        <div class="r-name">🧭 North</div>
+        <div class="r-pct" style="color: #2196F3;">0.25%</div>
+      </div>
+      <table class="rep-table">
+        <thead><tr><th>Rep</th><th>Target</th><th>Achv.</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td>Pradeep</td><td>₹30L</td><td>₹16,700</td><td><span class="chip-pos">1%</span></td></tr>
+          <tr><td>Subash</td><td>₹60L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Ashish</td><td>₹25L</td><td>₹31,300</td><td><span class="chip-pos">1%</span></td></tr>
+          <tr><td>Shoeb</td><td>₹20L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Shahid</td><td>₹20L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Sunil</td><td>₹15L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Manoj</td><td>₹10L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Aman</td><td>₹10L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SOUTH -->
+    <div class="region-card">
+      <div class="region-header" style="background: rgba(245,166,35,0.15); border-bottom: 1px solid rgba(245,166,35,0.2);">
+        <div class="r-name">🌴 South</div>
+        <div class="r-pct" style="color: #F5A623;">0.16%</div>
+      </div>
+      <table class="rep-table">
+        <thead><tr><th>Rep</th><th>Target</th><th>Achv.</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td>Sujit</td><td>₹60L</td><td>₹77,650</td><td><span class="chip-pos">1%</span></td></tr>
+          <tr><td>Raja</td><td>₹4.00 Cr</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Rahim Abdul</td><td>₹10L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Dinesh</td><td>₹10L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Hussain</td><td>₹10L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- EAST -->
+    <div class="region-card">
+      <div class="region-header" style="background: rgba(255,107,107,0.15); border-bottom: 1px solid rgba(255,107,107,0.2);">
+        <div class="r-name">🌅 East</div>
+        <div class="r-pct" style="color: #FF6B6B;">0%</div>
+      </div>
+      <table class="rep-table">
+        <thead><tr><th>Rep</th><th>Target</th><th>Achv.</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td>Partho</td><td>₹20L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Abhishek</td><td>₹20L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Rajiv</td><td>₹10L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- WEST -->
+    <div class="region-card">
+      <div class="region-header" style="background: rgba(156,39,176,0.15); border-bottom: 1px solid rgba(156,39,176,0.2);">
+        <div class="r-name">🌄 West</div>
+        <div class="r-pct" style="color: #CE93D8;">0.72%</div>
+      </div>
+      <table class="rep-table">
+        <thead><tr><th>Rep</th><th>Target</th><th>Achv.</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td>Birendra</td><td>₹60L</td><td>₹19,999</td><td><span class="chip-pos">0.03%</span></td></tr>
+          <tr><td>Mayank</td><td>₹15L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Nooruddin</td><td>₹15L</td><td>₹73,632</td><td><span class="chip-pos">5%</span></td></tr>
+          <tr><td>Baswraj</td><td>₹15L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Shrikant</td><td>₹10L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+          <tr><td>Dhananjay</td><td>₹15L</td><td>—</td><td><span class="chip-zero">0%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>KENT RO Systems Ltd. &nbsp;·&nbsp; Sales Dashboard &nbsp;·&nbsp; February 2025 &nbsp;·&nbsp; Data sourced from Billing Target Sheet</footer>
+
+</div><!-- /page -->
+
+<script>
+// ── DATA ──
+const regions = ['North','South','East','West'];
+const targets  = [1900000, 4900000, 500000, 1300000];
+const achieved = [48000,   77650,   0,      93631];
+const colors   = ['#2196F3','#F5A623','#FF6B6B','#9C27B0'];
+const colorsFade = ['rgba(33,150,243,0.2)','rgba(245,166,35,0.2)','rgba(255,107,107,0.2)','rgba(156,39,176,0.2)'];
+
+// Chart defaults
+Chart.defaults.color = 'rgba(255,255,255,0.6)';
+Chart.defaults.font.family = 'Inter';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+
+const tooltipStyle = {
+  backgroundColor: '#0F2044',
+  borderColor: 'rgba(255,255,255,0.1)',
+  borderWidth: 1,
+  titleColor: '#fff',
+  bodyColor: 'rgba(255,255,255,0.75)',
+  padding: 10,
+  callbacks: {
+    label: ctx => ` ₹${ctx.parsed.y?.toLocaleString('en-IN') ?? ctx.parsed.toLocaleString('en-IN')}`
+  }
+};
+
+// ── BAR CHART ──
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: regions,
+    datasets: [
+      {
+        label: 'Target',
+        data: targets,
+        backgroundColor: colorsFade,
+        borderColor: colors,
+        borderWidth: 2,
+        borderRadius: 6,
+      },
+      {
+        label: 'Achievement',
+        data: achieved,
+        backgroundColor: colors,
+        borderColor: colors,
+        borderWidth: 0,
+        borderRadius: 6,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 14 } }, tooltip: tooltipStyle },
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        ticks: { callback: v => '₹' + (v >= 1e6 ? (v/1e5).toFixed(0)+'L' : (v/1000).toFixed(0)+'K') },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      }
+    }
+  }
+});
+
+// ── DONUT CHART ──
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: regions,
+    datasets: [{
+      data: targets,
+      backgroundColor: colors.map(c => c + 'CC'),
+      borderColor: colors,
+      borderWidth: 2,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } },
+      tooltip: { ...tooltipStyle, callbacks: { label: ctx => ` ₹${(ctx.parsed/1e5).toFixed(0)} L (${Math.round(ctx.parsed/8600000*100)}%)` } }
+    }
+  }
+});
+
+// ── REP HORIZONTAL BAR ──
+const repNames = ['Ashish','Sujit','Nooruddin','Pradeep','Birendra'];
+const repAchv  = [31300,   77650,   73632,     16700,    19999];
+const repTgt   = [2500000, 6000000, 1500000,   3000000,  6000000];
+const repPcts  = repAchv.map((a,i) => +((a/repTgt[i])*100).toFixed(2));
+const repCols  = ['#2196F3','#F5A623','#9C27B0','#2196F3','#9C27B0'];
+
+new Chart(document.getElementById('repChart'), {
+  type: 'bar',
+  data: {
+    labels: repNames,
+    datasets: [{
+      label: '% of Target Achieved',
+      data: repPcts,
+      backgroundColor: repCols.map(c => c + 'CC'),
+      borderColor: repCols,
+      borderWidth: 2,
+      borderRadius: 8,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { ...tooltipStyle, callbacks: { label: ctx => ` ${ctx.parsed.x.toFixed(2)}% achieved` } }
+    },
+    scales: {
+      x: {
+        ticks: { callback: v => v + '%' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// ── ANIMATE PROGRESS RINGS ──
+function animateRing(id, pctId, pct, cap = 5) {
+  const el = document.getElementById(id);
+  const tx = document.getElementById(pctId);
+  const r = 45;
+  const circ = 2 * Math.PI * r; // ≈ 283
+  // For visual clarity, amplify very small pcts (min visible arc = 2%)
+  const visual = Math.min(Math.max(pct, pct > 0 ? 2 : 0), 100);
+  const offset = circ - (visual / 100) * circ;
+  setTimeout(() => {
+    el.style.strokeDashoffset = offset;
+    // Count up number
+    let start = 0, end = pct, dur = 1400;
+    let t0 = null;
+    function step(ts) {
+      if (!t0) t0 = ts;
+      let prog = Math.min((ts - t0) / dur, 1);
+      let val = (end * prog).toFixed(2);
+      tx.textContent = val < 0.01 ? '0%' : val + '%';
+      if (prog < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }, 300);
+}
+
+animateRing('ring-north', 'rpct-north', 0.25);
+animateRing('ring-south', 'rpct-south', 0.16);
+animateRing('ring-east',  'rpct-east',  0);
+animateRing('ring-west',  'rpct-west',  0.72);
+animateRing('ring-team',  'rpct-team',  0.25);
+
+// ── ANIMATE TABLE MINI-BARS ──
+// (mini-bars are decorative; we add them dynamically)
+document.querySelectorAll('table.rep-table tbody tr').forEach(row => {
+  const chipEl = row.querySelector('.chip-pos, .chip-zero');
+  if (!chipEl) return;
+  const tdAchv = row.querySelectorAll('td')[2];
+  if (!tdAchv) return;
+  const bar = document.createElement('div');
+  bar.className = 'bar-mini';
+  const fill = document.createElement('div');
+  fill.className = 'bar-mini-fill';
+  const pct = chipEl.classList.contains('chip-pos') ? Math.min(parseFloat(chipEl.textContent) || 1, 100) : 0;
+  fill.style.background = pct > 0 ? '#4CAF50' : '#FF6B6B';
+  bar.appendChild(fill);
+  tdAchv.appendChild(bar);
+  setTimeout(() => { fill.style.width = pct + '%'; }, 400);
+});
+</script>
+</body>
+</html>
